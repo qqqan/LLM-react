@@ -1,20 +1,40 @@
 import "./App.css";
 import Sender from "@/components/Sender";
+import Bubble from "./components/Bubble/index.js";
 import * as coze from "./services/coze.js";
 import { useEffect, useState } from "react";
 import { poll } from "./utils/poll.js";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import {
+    CloudUploadOutlined,
+    CommentOutlined,
+    EllipsisOutlined,
+    FireOutlined,
+    HeartOutlined,
+    LinkOutlined,
+    PlusOutlined,
+    ReadOutlined,
+    ShareAltOutlined,
+    SmileOutlined,
+} from "@ant-design/icons";
+import { Button, GetProp, Space } from "antd";
 
 function App() {
-    const [value, setValue] = useState<string>("Hello? this is X!");
+    const [content, setContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [conversationId, setConversationId] = useState<string>(
         "7444432363591073792"
     );
+    const [question, setQuestion] = useState<string>("");
+    const [chatHistory, setChatHistory] = useState<string[]>([]); // 存储对话历史记录
+    const [curMsg, setCurMsg] = useState<string>(""); // 存储当前对话内容
     const [msg, setMsg] = useState<string>("讲个笑话");
     const [msgId, setMsgId] = useState<string>("");
+    // const [msgs, setMsgs] = useState<string[]>([]);
 
     const [resMsg, setResMsg] = useState<string>("");
+
+    // const {onRequest, }
 
     // 创建会话
     const createConversation = async () => {
@@ -89,7 +109,7 @@ function App() {
     };
 
     // 发起对话
-    const createChat = async (message) => {
+    const createChat = async (question) => {
         try {
             console.log("发送消息");
             const res = await coze.createChat(conversationId);
@@ -111,7 +131,8 @@ function App() {
     };
 
     // 流式响应对话
-    const createChatStream = async () => {
+    const createChatStream = async (question: string) => {
+        console.log("流式对话", question);
         const body = JSON.stringify({
             bot_id: "7443050849351352329",
             user_id: "123456789",
@@ -120,7 +141,7 @@ function App() {
             additional_messages: [
                 {
                     role: "text",
-                    content: "2024年10月1日星期几",
+                    content: question,
                     content_type: "text",
                 },
             ],
@@ -144,7 +165,6 @@ function App() {
                 async onmessage(e) {
                     const event = e.event;
                     const data = JSON.parse(e.data);
-                    console.log(e, data);
                     switch (event) {
                         case "conversation.chat.created":
                             console.log("create");
@@ -155,8 +175,11 @@ function App() {
                         case "conversation.message.delta":
                             if (data.type === "answer") {
                                 message += data.content;
+                                setCurMsg(message);
                                 setResMsg(message);
+                                setChatHistory([...chatHistory, message]);
                             }
+                            // 还有其他的answer类型
                             break;
                         case "conversation.message.completed":
                             console.log("message已回复完成");
@@ -194,12 +217,23 @@ function App() {
         }
     }, [loading]);
 
+    // const onSubmit = (nextContent: string) => {
+    //     if (!nextContent) return;
+    //     onRequest(nextContent);
+    //     setContent("");
+    // };
+
+    // const msgs: GetProp<typeof Bubble.List, "item"> = messages.map(
+    //     ({ id, message, status }) => ({
+    //         key: id,
+    //         loading: status === "loading",
+    //         role: status === "local" ? "local" : "ai",
+    //         content: message,
+    //     })
+    // );
+
     return (
         <>
-            {/* <Attachments></Attachments>
-            <Bubble></Bubble>
-            <Conversations></Conversations>
-            <Sender></Sender> */}
             <h1>Hello Coze</h1>
             <div className="flex flex-col">
                 <button onClick={createConversation}>创建会话接口测试</button>
@@ -212,27 +246,49 @@ function App() {
                 <button onClick={createChat}>发消息测试</button>
             </div>
 
-            {/* <Sender
-                // defaultValue="讲个笑话"
-                loading={loading}
-                value={value}
-                onChange={(e) => {
-                    console.log(e.target.value);
-                    setValue(e.target.value);
-                }}
-                onSubmit={() => {
-                    console.log("Send message:", value);
-                    setValue("");
-                    setLoading(true);
-                }}
-                onCancel={() => {
-                    setLoading(false);
-                    console.log("Cancel sending");
-                }}
-            ></Sender> */}
+            <div className="w-96 h-96 border-2">
+                {chatHistory.map((msg) => {
+                    return <Bubble content={msg}></Bubble>;
+                })}
+            </div>
+
+            {/* <Bubble content={resMsg}></Bubble> */}
+
             {/* <Basic></Basic> */}
             {/* <Sender value={resMsg}></Sender> */}
-            <textarea value={resMsg} className="w-96 h-64 border-2" />
+            {/* <textarea value={resMsg} className="w-96 h-64 border-2" /> */}
+
+            <div>
+                <div className="menu">
+                    {/* 添加会话 */}
+                    <Button icon={<PlusOutlined />}>New Conversation</Button>
+                    {/* 会话管理 */}
+                </div>
+                <div>
+                    {/* BubbleList */}
+                    <Sender
+                        loading={loading}
+                        value={question}
+                        onChange={(e) => {
+                            console.log(e.target.value);
+                            setQuestion(e.target.value);
+                        }}
+                        onSubmit={() => {
+                            console.log("Send message:", question);
+                            // 添加question到chatHistory中
+                            setChatHistory([...chatHistory, question]);
+                            // 发起对话
+                            createChatStream(question);
+                            setQuestion("");
+                            setLoading(true);
+                        }}
+                        onCancel={() => {
+                            setLoading(false);
+                            console.log("Cancel sending");
+                        }}
+                    ></Sender>
+                </div>
+            </div>
         </>
     );
 }

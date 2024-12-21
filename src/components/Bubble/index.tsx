@@ -1,34 +1,12 @@
-import { Spin } from "antd";
-import React from "react";
-import useTypedEffect from "./hooks/useTypedEffect";
-import useTypingConfig from "./hooks/useTypingConfig";
+import Bubble from "./Bubble";
+import List from "./BubbleList";
 
-export default function Bubble(props, ref) {
-    const {
-        loading = false,
-        content = "",
-        typing,
-        messageRender,
-        ...otherHtmlProps
-    } = props;
-    const [typingEnabled, typingStep, typingInterval] = useTypingConfig(typing);
-    const [typedContent, isTyping] = useTypedEffect(
-        content,
-        typingEnabled,
-        typingStep,
-        typingInterval
-    );
+export type { BubbleProps } from "./interface";
 
-    const mergedContent = messageRender
-        ? messageRender(typedContent as any)
-        : typedContent;
+type BubbleType = typeof Bubble & {
+    List: typeof List;
+};
 
-    let contentNode: React.ReactNode;
-    if (loading) {
-        contentNode = <Spin />;
-    } else {
-        contentNode = mergedContent as React.ReactNode;
-    }
-    let fullContent: React.ReactNode = <div>{contentNode}</div>;
-    return <div>{fullContent}</div>;
-}
+(Bubble as BubbleType).List = List;
+
+export default Bubble as BubbleType;
