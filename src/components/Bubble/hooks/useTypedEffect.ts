@@ -1,59 +1,48 @@
-import React from "react"
-import useLayoutEffect from 'rc-util/lib/hooks/useLayoutEffect';
-
-
-function isString(str: any): str is string {
-    return typeof str === 'string'
-}
-
-// 模拟打字机效果
-/*
-输入参数：
-content: React.ReactNode | object, // 需要展示的内容
-typingEnabled: boolean,  // 是否启用打字效果
-typingStep: number,  // 每次打字时增加的字符数
-typingInterval: number,  // 打字效果的时间间隔
-返回参数：
-typedContent: 当前展示的内容
-isTyping: 表示当前是否正在打字
-*/
+import React from "react";
 
 const useTypedEffect = (
-    content: React.ReactNode | object,
+    content: string,
     typingEnabled: boolean,
     typingStep: number,
     typingInterval: number,
-): [typedContent: React.ReactNode | object, isTyping: boolean] => {
-    const [prevContent, setPrevContent] = React.useState<React.ReactNode | object>("");
-    const [typingIndex, setTypingIndex] = React.useState<number>(1);
+): [typedContent: string, isTyping: boolean] => {
+    const [typingIndex, setTypingIndex] = React.useState<number>(0);
+    const [isTyping, setIsTyping] = React.useState<boolean>(false);
 
-    const mergedTypingEnabled = typingEnabled && isString(content)
+    const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
-    useLayoutEffect(() => {
-        setPrevContent(content);
-        if (!mergedTypingEnabled && isString(content)) {
-            setTypingIndex(content.length)
-        } else if (isString(content) && isString(prevContent) && content.indexOf(prevContent) !== 0) {
-            setTypingIndex(1)
-        }
-    }, [content])
-
-    // 开始打印
     React.useEffect(() => {
-        if (mergedTypingEnabled && typingIndex < content.length) {
-            const id = setTimeout(() => {
-                setTypingIndex((prev) => prev + typingStep)
-            }, typingInterval)
+        if (!typingEnabled) {
+            setTypingIndex(content.length)
+            setIsTyping(false);
+            return;
+        }
 
-            return () => {
-                clearTimeout(id)
+        setTypingIndex(0)
+        setIsTyping(true);
+
+        const type = () => {
+            if (typingIndex < content.length) {
+                setTypingIndex((prev) => prev + typingStep)
+                timeoutRef.current = setTimeout(type, typingInterval);
+            } else {
+                setIsTyping(false)
             }
         }
-    }, [typingIndex, typingEnabled, content])
 
-    const mergedTypingContent = mergedTypingEnabled ? content.slice(0, typingIndex) : content
+        type();
 
-    return [mergedTypingContent, mergedTypingEnabled && typingIndex < content.length]
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+        }
+    }, [content, typingEnabled, typingStep, typingInterval])
+
+    const mergedTypingContent = content.slice(0, typingIndex)
+
+    return [mergedTypingContent, isTyping]
+
 }
 
 export default useTypedEffect

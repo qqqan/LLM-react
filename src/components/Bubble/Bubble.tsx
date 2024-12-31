@@ -4,13 +4,7 @@ import useTypedEffect from "./hooks/useTypedEffect";
 import useTypingConfig from "./hooks/useTypingConfig";
 
 export default function Bubble(props, ref) {
-    const {
-        loading = false,
-        content = "",
-        typing,
-        messageRender,
-        ...otherHtmlProps
-    } = props;
+    const { loading = false, content = "", typing, messageRender } = props;
     const [typingEnabled, typingStep, typingInterval] = useTypingConfig(typing);
     const [typedContent, isTyping] = useTypedEffect(
         content,
@@ -29,6 +23,6 @@ export default function Bubble(props, ref) {
     } else {
         contentNode = mergedContent as React.ReactNode;
     }
-    let fullContent: React.ReactNode = <div>{contentNode}</div>;
+    const fullContent: React.ReactNode = <div>{contentNode}</div>;
     return <div className="border-2 rounded-lg">{fullContent}</div>;
 }

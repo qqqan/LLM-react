@@ -1,20 +1,27 @@
 import React from "react";
-// import { Bubble } from "@ant-design/x";
-// import Bubble from "../Bubble";
+// import { UserOutlined } from "@ant-design/icons";
 import Bubble from "..";
 import { Button, Flex } from "antd";
-import type { GetProp, GetRef } from "antd";
+// import type { GetProp, GetRef } from "antd";
 
-const roles: GetProp<typeof Bubble.List, "roles"> = {
-    ai: {
-        typing: { step: 5, interval: 20 },
-    },
-    user: {},
-};
+// const roles: GetProp<typeof Bubble.List, "roles"> = {
+//     ai: {
+//         placement: "start",
+//         avatar: { icon: <UserOutlined />, style: { background: "#fde3cf" } },
+//         typing: { step: 5, interval: 20 },
+//         style: {
+//             maxWidth: 600,
+//         },
+//     },
+//     user: {
+//         placement: "end",
+//         avatar: { icon: <UserOutlined />, style: { background: "#87d068" } },
+//     },
+// };
 
 const App = () => {
     const [count, setCount] = React.useState(3);
-    const listRef = React.useRef<GetRef<typeof Bubble.List>>(null);
+    // const listRef = React.useRef<GetRef<typeof Bubble.List>>(null);
 
     return (
         <Flex vertical gap="small">
@@ -26,10 +33,20 @@ const App = () => {
                 >
                     Add Bubble
                 </Button>
+
+                {/* <Button
+                    onClick={() => {
+                        listRef.current?.scrollTo({ key: 0, block: "nearest" });
+                    }}
+                >
+                    Scroll To First
+                </Button> */}
             </Flex>
 
             <Bubble.List
-                roles={roles}
+                // ref={listRef}
+                // style={{ maxHeight: 300 }}
+                // roles={roles}
                 items={Array.from({ length: count }).map((_, i) => {
                     const isAI = !!(i % 2);
                     const content = isAI
